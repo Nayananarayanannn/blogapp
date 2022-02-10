@@ -8,7 +8,7 @@ const app = express();
 const path = require("path");
 
 // Step 1:
-app.use(express.static(path.resolve(__dirname, "./my_blog/build")));
+app.use(express.static(path.resolve(__dirname, "../build")));
 // Step 2:
 
 
