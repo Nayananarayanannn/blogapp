@@ -1,20 +1,18 @@
-import express from "express";
+const express= require ("express")
 const ArticleInfo = require("./model/BlogDB");
 const ArticleContent= require("./model/ArtcleDB")
 const cors = require("cors");
 require("dotenv").config();
-
+const app = express();
 // Accessing the path module
 const path = require("path");
 
 // Step 1:
 app.use(express.static(path.resolve(__dirname, "./my_blog/build")));
 // Step 2:
-app.get("*", function (request, response) {
-  response.sendFile(path.resolve(__dirname, "./my_blog/build", "index.html"));
-});
 
-const app = express();
+
+
 app.use(express.json());
 
 // Setting up CORS
@@ -159,7 +157,11 @@ app.post('/api/:name/delete', function (req, res) {
       })  
   
 })
-
+app.get("*", function (request, response) {
+  response.sendFile(path.resolve(__dirname, "../build", "index.html"));
+  
+});
+console.log(__dirname);
 // specify port
 app.listen(process.env.PORT || 8000, () => {
   console.log("listening 8000");

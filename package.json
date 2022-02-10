@@ -2,9 +2,9 @@
   "name": "my_blog_backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "server": "node index.js",
+    "server": "node ./src/server.js",
     "develop": "concurrently --kill-others-on-fail \"npm run server\"",
     "start": "concurrently --kill-others-on-fail \"npm run server\" "
   },
