@@ -11,7 +11,8 @@ mongoose.connect('mongodb+srv://Nayana:Nayana95@ictaktrial.nyh4v.mongodb.net/my-
  var articleSchema= new Schema({
      name:String,
      title:String,
-     content:Array
+     content:Array,
+     image:String
  });
 
 // create collection

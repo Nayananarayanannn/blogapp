@@ -1,20 +1,33 @@
-const express= require ("express")
+const express= require ("express");
+const multer = require('multer');
+const { v4:uuidv4 } = require('uuid');
 const ArticleInfo = require("./model/BlogDB");
-const ArticleContent= require("./model/ArtcleDB")
+const ArticleContent= require("./model/ArtcleDB");
+const User = require('./model/UserDB');
 const cors = require("cors");
 require("dotenv").config();
+
+
 const app = express();
 // Accessing the path module
 const path = require("path");
+// jwt and bcrypt for authentication
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const { urlencoded } = require("express");
+
 
 // Step 1:
 app.use(express.static(path.resolve(__dirname, "../build")));
 // Step 2:
+app.get("*", function (request, response) {
+  response.sendFile(path.resolve(__dirname, "../build", "index.html"));
+});
 
 
 
 app.use(express.json());
-
+app.use(express.urlencoded({ extended:true }))
 // Setting up CORS
 app.use(cors());
 app.use(function (req, res, next) {
@@ -40,6 +53,84 @@ app.use(function (req, res, next) {
   // Pass to next layer of middleware
   next();
 });
+
+
+// MULTER
+const storage = multer.diskStorage({
+  destination: function(req, file, cb) {
+      cb(null, (path.join(__dirname,'../../my_blog/public/images')))
+  },
+  filename: function(req, file, cb) {   
+      cb(null, uuidv4() + '-' + Date.now() + path.extname(file.originalname));
+  }
+});
+
+const fileFilter = (req, file, cb) => {
+  const allowedFileTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+  if(allowedFileTypes.includes(file.mimetype)) {
+      cb(null, true);
+  } else {
+      cb(null, false);
+  }
+}
+
+let upload = multer({ storage, fileFilter });
+
+
+
+// post signup details
+app.post('/api/signup',async (req,res)=>{
+  try{
+    
+    // encrypt password
+    const newPassword = await bcrypt.hash(req.body.password, 10);
+
+    // create user document on signup
+    const user = await User.create({
+      username: req.body.username,
+      email: req.body.email,
+      password: req.body.password,
+    })
+    res.json({ status: 'ok' });
+    console.log(req.body);
+  } catch (err) {
+    res.json({ status:'error',error: err });
+    console.log(err);
+  }
+});
+
+// Post login details and verify
+app.post('/api/login', async (req,res)=>{
+
+  // Find the particular user from DB with login username
+  const user = await User.findOne({ 
+    username: req.body.username,
+  })
+  console.log(user);
+  console.log(req.body.username);
+
+  // if username not registered, throw error
+  if(!user){
+    return res.json({ status:'error', error: 'Invalid User'})
+  }
+
+  const isPasswordvalid = await bcrypt.compare( req.body.password, user.password )
+
+  if(user){
+    const token = jwt.sign({
+
+      username: req.body.username,
+      email: user.email,
+    },
+    'secret'
+    )
+    res.json({ status: 'ok', user: token })
+  }
+  else{
+    res.json({ status: 'error', user: false })
+  }
+});
+
 
 
 // get particular article content from db
@@ -98,11 +189,14 @@ app.post("/api/articles/:name/comments", (req, res) => {
 });
 
 // add new article to db
-app.post("/api/add-article",(req,res)=>{
+app.post("/api/add-article",upload.single('image'),(req,res)=>{
+  console.log('req body')
+  console.log(req.body);
   var item={
     title:req.body.title,
     name:req.body.name,
-    content:req.body.content
+    content:req.body.content,
+    image:req.file.filename
   }
   var itemInfo={
     name:req.body.name,
@@ -110,7 +204,7 @@ app.post("/api/add-article",(req,res)=>{
     comments:""
 
   }
-  console.log(itemInfo);
+  // console.log(item);
   const article= new ArticleContent(item);
   article.save();
   const articleInfo=new ArticleInfo(itemInfo);
@@ -119,14 +213,16 @@ app.post("/api/add-article",(req,res)=>{
 })
 
 // update article from form
-app.post("/api/:name/update",(req,res)=>{
+app.post("/api/:name/update",upload.single('image'),(req,res)=>{
   const articleName = req.params.name;
   const title=req.body.title;
   const name=req.body.name;
   const content=req.body.content;
+  const image=req.file.filename;
   const filter={name:articleName};
+  console.log(req.body)
 
-  const update={$set:{title:title,name:name,content:content}};
+  const update={$set:{title:title,name:name,content:content,image:image}};
 
   ArticleContent.findOneAndUpdate(filter, update, { new: true })
   .then(
