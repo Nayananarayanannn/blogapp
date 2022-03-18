@@ -14,7 +14,6 @@ const path = require("path");
 // jwt and bcrypt for authentication
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const { urlencoded } = require("express");
 
 
 // Step 1:
@@ -89,7 +88,7 @@ app.post('/api/signup',async (req,res)=>{
     const user = await User.create({
       username: req.body.username,
       email: req.body.email,
-      password: req.body.password,
+      password: newPassword,
     })
     res.json({ status: 'ok' });
     console.log(req.body);
@@ -116,7 +115,7 @@ app.post('/api/login', async (req,res)=>{
 
   const isPasswordvalid = await bcrypt.compare( req.body.password, user.password )
 
-  if(user){
+  if(user && isPasswordvalid){
     const token = jwt.sign({
 
       username: req.body.username,
@@ -253,10 +252,10 @@ app.post('/api/:name/delete', function (req, res) {
       })  
   
 })
-app.get("*", function (request, response) {
-  response.sendFile(path.resolve(__dirname, "../build", "index.html"));
+// app.get("*", function (request, response) {
+//   response.sendFile(path.resolve(__dirname, "../build", "index.html"));
   
-});
+// });
 console.log(__dirname);
 // specify port
 app.listen(process.env.PORT || 8000, () => {
