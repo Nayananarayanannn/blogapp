@@ -16,12 +16,12 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
 
-// // Step 1:
-// app.use(express.static(path.resolve(__dirname, "../build")));
-// // Step 2:
-// app.get("*", function (request, response) {
-//   response.sendFile(path.resolve(__dirname, "../build", "index.html"));
-// });
+// Step 1:
+app.use(express.static(path.resolve(__dirname, "../build")));
+// Step 2:
+app.get("*", function (request, response) {
+  response.sendFile(path.resolve(__dirname, "../build", "index.html"));
+});
 
 
 
