@@ -15,16 +15,8 @@ const path = require("path");
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
-
-// Step 1:
-app.use(express.static(path.resolve(__dirname, "../build")));
-// Step 2:
-app.get("*", function (request, response) {
-  response.sendFile(path.resolve(__dirname, "../build", "index.html"));
-});
-
-
-
+app.use(express.static(path.join(__dirname,'/build')));
+app.use(express.static('./public'))
 app.use(express.json());
 app.use(express.urlencoded({ extended:true }))
 // Setting up CORS
@@ -57,7 +49,7 @@ app.use(function (req, res, next) {
 // MULTER
 const storage = multer.diskStorage({
   destination: function(req, file, cb) {
-      cb(null, (path.join(__dirname,'../../my_blog/public/images')))
+      cb(null, (path.join(__dirname,'../src/build/images')))
   },
   filename: function(req, file, cb) {   
       cb(null, uuidv4() + '-' + Date.now() + path.extname(file.originalname));
@@ -252,11 +244,11 @@ app.post('/api/:name/delete', function (req, res) {
       })  
   
 })
-// app.get("*", function (request, response) {
-//   response.sendFile(path.resolve(__dirname, "../build", "index.html"));
-  
-// });
-console.log(__dirname);
+
+app.get('*',(req,res)=>{
+  res.sendFile(path.join(__dirname + '/build/index.html'))
+});
+
 // specify port
 app.listen(process.env.PORT || 8000, () => {
   console.log("listening 8000");
